@@ -17,3 +17,11 @@ Flutter, provider (state), sqflite (storage), fl_chart (charts), pdf + printing 
 - Ek task mein sirf wohi files badlo jo zaroori hon
 - Bina poochay naya package mat lagao
 - Har kaam ke baad flutter analyze saaf ho
+
+
+## Design
+- Material 3, colors from ColorScheme.fromSeed (teal/green seed), light and dark mode both supported
+- Define the theme once in lib/theme/app_theme.dart, no hardcoded colors in screens
+- Rounded cards (radius 16), consistent 16px padding, income green and expense red from the theme
+- Every list screen has an empty state (icon + short text)
+- Category icons for each category
