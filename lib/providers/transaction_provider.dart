@@ -23,8 +23,48 @@ class TransactionProvider extends ChangeNotifier {
   double get totalBalance => totalIncome - totalExpense;
 
   Map<String, double> getExpenseTotalsByCategory() {
+    return _expenseTotalsByCategory(_transactions);
+  }
+
+  List<TransactionModel> getTransactionsForMonth(DateTime month) {
+    return List.unmodifiable(_transactionsInMonth(month));
+  }
+
+  double getTotalIncomeForMonth(DateTime month) {
+    return _totalForMonth(month, TransactionType.income);
+  }
+
+  double getTotalExpenseForMonth(DateTime month) {
+    return _totalForMonth(month, TransactionType.expense);
+  }
+
+  double getBalanceForMonth(DateTime month) {
+    return getTotalIncomeForMonth(month) - getTotalExpenseForMonth(month);
+  }
+
+  Map<String, double> getExpenseTotalsByCategoryForMonth(DateTime month) {
+    return _expenseTotalsByCategory(_transactionsInMonth(month));
+  }
+
+  Iterable<TransactionModel> _transactionsInMonth(DateTime month) {
+    return _transactions.where(
+      (transaction) =>
+          transaction.date.year == month.year &&
+          transaction.date.month == month.month,
+    );
+  }
+
+  double _totalForMonth(DateTime month, TransactionType type) {
+    return _transactionsInMonth(month)
+        .where((transaction) => transaction.type == type)
+        .fold(0.0, (total, transaction) => total + transaction.amount);
+  }
+
+  Map<String, double> _expenseTotalsByCategory(
+    Iterable<TransactionModel> transactions,
+  ) {
     final totals = <String, double>{};
-    for (final transaction in _transactions) {
+    for (final transaction in transactions) {
       if (transaction.type == TransactionType.expense) {
         totals.update(
           transaction.category,

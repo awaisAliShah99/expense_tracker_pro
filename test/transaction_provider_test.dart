@@ -51,12 +51,40 @@ void main() {
           category: 'Salary',
           date: DateTime(2026, 11, 25),
         ),
+        TransactionModel(
+          id: 4,
+          title: 'Rent',
+          amount: 50,
+          type: TransactionType.expense,
+          category: 'Housing',
+          date: DateTime(2026, 10, 31),
+        ),
+        TransactionModel(
+          id: 5,
+          title: 'Coffee',
+          amount: 5,
+          type: TransactionType.expense,
+          category: 'Other',
+          date: DateTime(2025, 11, 25),
+        ),
       ]),
     );
 
     await provider.loadTransactions();
 
-    expect(provider.getExpenseTotalsByCategory(), {'Food': 32.5});
+    final november = DateTime(2026, 11);
+    expect(provider.getExpenseTotalsByCategory(), {
+      'Food': 32.5,
+      'Housing': 50,
+      'Other': 5,
+    });
+    expect(provider.getTransactionsForMonth(november), hasLength(3));
+    expect(provider.getTotalIncomeForMonth(november), 100);
+    expect(provider.getTotalExpenseForMonth(november), 32.5);
+    expect(provider.getBalanceForMonth(november), 67.5);
+    expect(provider.getExpenseTotalsByCategoryForMonth(november), {
+      'Food': 32.5,
+    });
     provider.dispose();
   });
 }

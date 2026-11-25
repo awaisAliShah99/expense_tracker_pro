@@ -8,6 +8,7 @@ import '../widgets/balance_summary_card.dart';
 import '../widgets/category_icon.dart';
 import '../widgets/expense_pie_chart.dart';
 import 'add_transaction_screen.dart';
+import 'monthly_report_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,22 @@ class HomeScreen extends StatelessWidget {
     final transactions = provider.transactions;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Tracker')),
+      appBar: AppBar(
+        title: const Text('Expense Tracker'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const MonthlyReportScreen(),
+                ),
+              );
+            },
+            tooltip: 'Monthly report',
+            icon: const Icon(Icons.calendar_month),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           BalanceSummaryCard(
