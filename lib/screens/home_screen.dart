@@ -6,6 +6,7 @@ import '../providers/transaction_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/balance_summary_card.dart';
 import '../widgets/category_icon.dart';
+import '../widgets/expense_pie_chart.dart';
 import 'add_transaction_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -24,6 +25,10 @@ class HomeScreen extends StatelessWidget {
             balance: provider.totalBalance,
             income: provider.totalIncome,
             expense: provider.totalExpense,
+          ),
+          ExpensePieChart(
+            expensesByCategory: provider.getExpenseTotalsByCategory(),
+            totalExpense: provider.totalExpense,
           ),
           if (provider.errorMessage != null && transactions.isNotEmpty)
             MaterialBanner(

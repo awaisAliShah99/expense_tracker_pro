@@ -22,6 +22,20 @@ class TransactionProvider extends ChangeNotifier {
   double get totalExpense => _totalFor(TransactionType.expense);
   double get totalBalance => totalIncome - totalExpense;
 
+  Map<String, double> getExpenseTotalsByCategory() {
+    final totals = <String, double>{};
+    for (final transaction in _transactions) {
+      if (transaction.type == TransactionType.expense) {
+        totals.update(
+          transaction.category,
+          (total) => total + transaction.amount,
+          ifAbsent: () => transaction.amount,
+        );
+      }
+    }
+    return Map.unmodifiable(totals);
+  }
+
   double _totalFor(TransactionType type) {
     return _transactions
         .where((transaction) => transaction.type == type)
