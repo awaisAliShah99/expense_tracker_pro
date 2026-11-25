@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/transaction_provider.dart';
 import 'screens/home_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,9 @@ class MyApp extends StatelessWidget {
       create: (_) => TransactionProvider(),
       child: MaterialApp(
         title: 'Expense Tracker',
-        theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.teal)),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: const HomeScreen(),
       ),
     );

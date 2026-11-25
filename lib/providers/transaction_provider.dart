@@ -18,6 +18,15 @@ class TransactionProvider extends ChangeNotifier {
   List<TransactionModel> get transactions => List.unmodifiable(_transactions);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  double get totalIncome => _totalFor(TransactionType.income);
+  double get totalExpense => _totalFor(TransactionType.expense);
+  double get totalBalance => totalIncome - totalExpense;
+
+  double _totalFor(TransactionType type) {
+    return _transactions
+        .where((transaction) => transaction.type == type)
+        .fold(0.0, (total, transaction) => total + transaction.amount);
+  }
 
   Future<void> loadTransactions() async {
     _isLoading = true;

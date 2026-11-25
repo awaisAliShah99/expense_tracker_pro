@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/balance_summary_card.dart';
+import '../widgets/category_icon.dart';
 import 'add_transaction_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,7 +18,26 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Expense Tracker')),
-      body: _buildBody(context, provider, transactions),
+      body: Column(
+        children: [
+          BalanceSummaryCard(
+            balance: provider.totalBalance,
+            income: provider.totalIncome,
+            expense: provider.totalExpense,
+          ),
+          if (provider.errorMessage != null && transactions.isNotEmpty)
+            MaterialBanner(
+              content: Text(provider.errorMessage!),
+              actions: [
+                TextButton(
+                  onPressed: provider.loadTransactions,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          Expanded(child: _buildBody(context, provider, transactions)),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
@@ -35,6 +57,8 @@ class HomeScreen extends StatelessWidget {
     TransactionProvider provider,
     List<TransactionModel> transactions,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (provider.isLoading && transactions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -59,76 +83,75 @@ class HomeScreen extends StatelessWidget {
     }
 
     if (transactions.isEmpty) {
-      return const Center(
-        child: Text('No transactions yet. Add one to begin.'),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 56,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No transactions yet. Add one to begin.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
+        ),
       );
     }
 
-    return Column(
-      children: [
-        if (provider.errorMessage != null)
-          MaterialBanner(
-            content: Text(provider.errorMessage!),
-            actions: [
-              TextButton(
-                onPressed: provider.loadTransactions,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: transactions.length,
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              final isIncome = transaction.type == TransactionType.income;
-              final amountColor = isIncome ? Colors.green : Colors.red;
-              final amountPrefix = isIncome ? '+' : '-';
+    return ListView.builder(
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final transaction = transactions[index];
+        final isIncome = transaction.type == TransactionType.income;
+        final transactionColors = Theme.of(context)
+            .extension<TransactionColors>();
+        final amountColor = isIncome
+            ? transactionColors?.income
+            : transactionColors?.expense;
+        final amountPrefix = isIncome ? '+' : '-';
 
-              return Dismissible(
-                key: ValueKey(transaction.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                onDismissed: (_) async {
-                  try {
-                    await context.read<TransactionProvider>().deleteTransaction(
-                      transaction.id!,
-                    );
-                  } catch (error) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Could not delete transaction: $error'),
-                      ),
-                    );
-                    await context
-                        .read<TransactionProvider>()
-                        .loadTransactions();
-                  }
-                },
-                child: ListTile(
-                  title: Text(transaction.title),
-                  subtitle: Text(
-                    '${transaction.category} · ${_formatDate(transaction.date)}',
-                  ),
-                  trailing: Text(
-                    '$amountPrefix${transaction.amount.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: amountColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              );
-            },
+        return Dismissible(
+          key: ValueKey(transaction.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: colorScheme.error,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            child: Icon(Icons.delete, color: colorScheme.onError),
           ),
-        ),
-      ],
+          onDismissed: (_) async {
+            try {
+              await context.read<TransactionProvider>().deleteTransaction(
+                transaction.id!,
+              );
+            } catch (error) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Could not delete transaction: $error')),
+              );
+              await context.read<TransactionProvider>().loadTransactions();
+            }
+          },
+          child: ListTile(
+            leading: CategoryIcon(category: transaction.category),
+            title: Text(transaction.title),
+            subtitle: Text(
+              '${transaction.category} · ${_formatDate(transaction.date)}',
+            ),
+            trailing: Text(
+              '$amountPrefix${transaction.amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: amountColor ?? colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
