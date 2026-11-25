@@ -7,11 +7,13 @@ class ExpensePieChart extends StatelessWidget {
   const ExpensePieChart({
     required this.expensesByCategory,
     required this.totalExpense,
+    this.periodLabel,
     super.key,
   });
 
   final Map<String, double> expensesByCategory;
   final double totalExpense;
+  final String? periodLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,9 @@ class ExpensePieChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Expenses by category',
+              periodLabel == null
+                  ? 'Expenses by category'
+                  : '$periodLabel · Expenses by category',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),

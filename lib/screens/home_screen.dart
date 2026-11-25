@@ -16,13 +16,17 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
-    final transactions = provider.transactions;
+    final now = DateTime.now();
+    final currentMonth = DateTime(now.year, now.month);
+    final monthLabel = MaterialLocalizations.of(context)
+        .formatMonthYear(currentMonth);
+    final transactions = provider.getTransactionsForMonth(currentMonth);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Tracker'),
         actions: [
-          IconButton(
+          TextButton.icon(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -30,8 +34,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               );
             },
-            tooltip: 'Monthly report',
             icon: const Icon(Icons.calendar_month),
+            label: const Text('View report'),
           ),
         ],
       ),
@@ -39,12 +43,17 @@ class HomeScreen extends StatelessWidget {
         children: [
           BalanceSummaryCard(
             balance: provider.totalBalance,
-            income: provider.totalIncome,
-            expense: provider.totalExpense,
+            income: provider.getTotalIncomeForMonth(currentMonth),
+            expense: provider.getTotalExpenseForMonth(currentMonth),
+            balanceLabel: 'All-time balance',
+            periodLabel: monthLabel,
           ),
           ExpensePieChart(
-            expensesByCategory: provider.getExpenseTotalsByCategory(),
-            totalExpense: provider.totalExpense,
+            expensesByCategory: provider.getExpenseTotalsByCategoryForMonth(
+              currentMonth,
+            ),
+            totalExpense: provider.getTotalExpenseForMonth(currentMonth),
+            periodLabel: monthLabel,
           ),
           if (provider.errorMessage != null && transactions.isNotEmpty)
             MaterialBanner(
@@ -56,7 +65,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-          Expanded(child: _buildBody(context, provider, transactions)),
+          Expanded(
+            child: _buildBody(context, provider, transactions, monthLabel),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -77,14 +88,15 @@ class HomeScreen extends StatelessWidget {
     BuildContext context,
     TransactionProvider provider,
     List<TransactionModel> transactions,
+    String monthLabel,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (provider.isLoading && transactions.isEmpty) {
+    if (provider.isLoading && provider.transactions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (transactions.isEmpty && provider.errorMessage != null) {
+    if (provider.transactions.isEmpty && provider.errorMessage != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -115,7 +127,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No transactions yet. Add one to begin.',
+              'No transactions for $monthLabel. Add one to begin.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],

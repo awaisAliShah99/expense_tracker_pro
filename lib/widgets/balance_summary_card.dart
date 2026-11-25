@@ -7,12 +7,16 @@ class BalanceSummaryCard extends StatelessWidget {
     required this.balance,
     required this.income,
     required this.expense,
+    this.balanceLabel = 'Total balance',
+    this.periodLabel,
     super.key,
   });
 
   final double balance;
   final double income;
   final double expense;
+  final String balanceLabel;
+  final String? periodLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ class BalanceSummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total balance',
+              balanceLabel,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
@@ -51,7 +55,16 @@ class BalanceSummaryCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            if (periodLabel != null) ...[
+              Text(
+                periodLabel!,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             Row(
               children: [
                 Expanded(
