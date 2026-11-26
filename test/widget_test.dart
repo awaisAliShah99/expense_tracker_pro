@@ -7,6 +7,7 @@ import 'package:expense_tracker_pro/db/database_helper.dart';
 import 'package:expense_tracker_pro/models/transaction_model.dart';
 import 'package:expense_tracker_pro/providers/transaction_provider.dart';
 import 'package:expense_tracker_pro/screens/home_screen.dart';
+import 'package:expense_tracker_pro/screens/monthly_report_screen.dart';
 import 'package:expense_tracker_pro/theme/app_theme.dart';
 
 class _FakeDatabaseHelper implements DatabaseHelper {
@@ -101,6 +102,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Monthly Report'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    provider.dispose();
+  });
+
+  testWidgets('monthly report shows a message when exporting an empty month', (
+    tester,
+  ) async {
+    final provider = TransactionProvider(
+      databaseHelper: _FakeDatabaseHelper([]),
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const MonthlyReportScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final monthLabel = MaterialLocalizations.of(
+      tester.element(find.byType(MonthlyReportScreen)),
+    ).formatMonthYear(DateTime.now());
+    await tester.tap(find.text('Export PDF'));
+    await tester.pump();
+
+    expect(
+      find.text('No transactions for $monthLabel to export.'),
+      findsOneWidget,
+    );
+
     await tester.pumpWidget(const SizedBox.shrink());
     provider.dispose();
   });

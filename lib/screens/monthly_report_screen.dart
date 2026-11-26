@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:printing/printing.dart';
 
 import '../models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
+import '../services/pdf_report_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/balance_summary_card.dart';
 import '../widgets/category_icon.dart';
@@ -17,6 +19,7 @@ class MonthlyReportScreen extends StatefulWidget {
 
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  final PdfReportService _pdfReportService = PdfReportService();
 
   void _changeMonth(int offset) {
     setState(() {
@@ -33,9 +36,35 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     final transactions = provider.getTransactionsForMonth(_selectedMonth);
     final monthLabel = MaterialLocalizations.of(context)
         .formatMonthYear(_selectedMonth);
+    final totalIncome = provider.getTotalIncomeForMonth(_selectedMonth);
+    final totalExpense = provider.getTotalExpenseForMonth(_selectedMonth);
+    final balance = provider.getBalanceForMonth(_selectedMonth);
+    final expensesByCategory = provider.getExpenseTotalsByCategoryForMonth(
+      _selectedMonth,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Monthly Report')),
+      appBar: AppBar(
+        title: const Text('Monthly Report'),
+        actions: [
+          TextButton.icon(
+            onPressed:
+                provider.isLoading ||
+                    (provider.errorMessage != null && transactions.isEmpty)
+                ? null
+                : () => _exportPdf(
+                    monthLabel: monthLabel,
+                    totalIncome: totalIncome,
+                    totalExpense: totalExpense,
+                    balance: balance,
+                    expensesByCategory: expensesByCategory,
+                    transactions: transactions,
+                  ),
+            icon: const Icon(Icons.picture_as_pdf),
+            label: const Text('Export PDF'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -58,15 +87,13 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             ),
           ),
           BalanceSummaryCard(
-            balance: provider.getBalanceForMonth(_selectedMonth),
-            income: provider.getTotalIncomeForMonth(_selectedMonth),
-            expense: provider.getTotalExpenseForMonth(_selectedMonth),
+            balance: balance,
+            income: totalIncome,
+            expense: totalExpense,
           ),
           ExpensePieChart(
-            expensesByCategory: provider.getExpenseTotalsByCategoryForMonth(
-              _selectedMonth,
-            ),
-            totalExpense: provider.getTotalExpenseForMonth(_selectedMonth),
+            expensesByCategory: expensesByCategory,
+            totalExpense: totalExpense,
           ),
           Expanded(
             child: _buildTransactionList(
@@ -79,6 +106,45 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportPdf({
+    required String monthLabel,
+    required double totalIncome,
+    required double totalExpense,
+    required double balance,
+    required Map<String, double> expensesByCategory,
+    required List<TransactionModel> transactions,
+  }) async {
+    if (transactions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No transactions for $monthLabel to export.')),
+      );
+      return;
+    }
+
+    try {
+      final bytes = await _pdfReportService.buildMonthlyReportPdf(
+        monthLabel: monthLabel,
+        totalIncome: totalIncome,
+        totalExpense: totalExpense,
+        balance: balance,
+        expensesByCategory: expensesByCategory,
+        transactions: transactions,
+      );
+      if (!mounted) return;
+
+      final month = _selectedMonth.month.toString().padLeft(2, '0');
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'monthly_report_${_selectedMonth.year}_$month.pdf',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not export PDF: $error')));
+    }
   }
 
   Widget _buildTransactionList(
