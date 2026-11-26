@@ -109,6 +109,19 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    _errorMessage = null;
+    try {
+      await _databaseHelper.updateTransaction(transaction);
+      _transactions = await _databaseHelper.getAllTransactions();
+      notifyListeners();
+    } catch (error) {
+      _errorMessage = 'Could not update transaction: $error';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   Future<void> deleteTransaction(int id) async {
     _errorMessage = null;
     try {

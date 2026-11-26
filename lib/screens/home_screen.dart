@@ -174,6 +174,14 @@ class HomeScreen extends StatelessWidget {
             subtitle: Text(
               '${transaction.category} · ${_formatDate(transaction.date)}',
             ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      AddTransactionScreen(transaction: transaction),
+                ),
+              );
+            },
             trailing: Text(
               '$amountPrefix${transaction.amount.toStringAsFixed(2)}',
               style: TextStyle(

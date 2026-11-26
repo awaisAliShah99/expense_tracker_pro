@@ -5,7 +5,9 @@ import '../models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
 
 class AddTransactionScreen extends StatefulWidget {
-  const AddTransactionScreen({super.key});
+  const AddTransactionScreen({super.key, this.transaction});
+
+  final TransactionModel? transaction;
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -33,13 +35,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   };
 
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _amountController;
 
-  TransactionType _type = TransactionType.expense;
-  late String _category = _categories[_type]!.first;
-  DateTime _date = DateTime.now();
+  late TransactionType _type;
+  late String _category;
+  late DateTime _date;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final transaction = widget.transaction;
+    _titleController = TextEditingController(text: transaction?.title ?? '');
+    _amountController = TextEditingController(
+      text: transaction?.amount.toString() ?? '',
+    );
+    _type = transaction?.type ?? TransactionType.expense;
+    _category = transaction?.category ?? _categories[_type]!.first;
+    _date = transaction?.date ?? DateTime.now();
+  }
 
   @override
   void dispose() {
@@ -65,6 +80,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     setState(() => _isSaving = true);
     final transaction = TransactionModel(
+      id: widget.transaction?.id,
       title: _titleController.text.trim(),
       amount: double.parse(_amountController.text.trim()),
       type: _type,
@@ -73,7 +89,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
 
     try {
-      await context.read<TransactionProvider>().addTransaction(transaction);
+      final provider = context.read<TransactionProvider>();
+      if (widget.transaction == null) {
+        await provider.addTransaction(transaction);
+      } else {
+        await provider.updateTransaction(transaction);
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (error) {
@@ -93,7 +114,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final categories = _categories[_type]!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Transaction')),
+      appBar: AppBar(
+        title: Text(
+          widget.transaction == null ? 'Add Transaction' : 'Edit Transaction',
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -194,7 +219,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save Transaction'),
+                  : Text(
+                      widget.transaction == null
+                          ? 'Save Transaction'
+                          : 'Update Transaction',
+                    ),
             ),
           ],
         ),

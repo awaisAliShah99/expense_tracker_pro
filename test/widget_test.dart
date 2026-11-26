@@ -22,6 +22,15 @@ class _FakeDatabaseHelper implements DatabaseHelper {
   Future<int> addTransaction(TransactionModel transaction) async => 0;
 
   @override
+  Future<int> updateTransaction(TransactionModel transaction) async {
+    final index = transactions.indexWhere((item) => item.id == transaction.id);
+    if (index >= 0) {
+      transactions[index] = transaction;
+    }
+    return index >= 0 ? 1 : 0;
+  }
+
+  @override
   Future<int> deleteTransaction(int id) async => 0;
 
   @override
@@ -135,6 +144,54 @@ void main() {
       findsOneWidget,
     );
 
+    await tester.pumpWidget(const SizedBox.shrink());
+    provider.dispose();
+  });
+
+  testWidgets('tapping a transaction opens the prefilled edit form', (
+    tester,
+  ) async {
+    final transaction = TransactionModel(
+      id: 1,
+      title: 'Lunch',
+      amount: 12.5,
+      type: TransactionType.expense,
+      category: 'Food',
+      date: DateTime.now(),
+    );
+    final provider = TransactionProvider(
+      databaseHelper: _FakeDatabaseHelper([transaction]),
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Lunch'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit Transaction'), findsOneWidget);
+    final fields = tester.widgetList<TextFormField>(find.byType(TextFormField));
+    expect(fields.first.controller?.text, 'Lunch');
+    expect(fields.last.controller?.text, '12.5');
+    expect(find.text('Food'), findsOneWidget);
+    expect(find.textContaining('Date:'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).first, 'Dinner');
+    await tester.enterText(find.byType(TextFormField).last, '18.75');
+    await tester.tap(find.text('Update Transaction'));
+    await tester.pumpAndSettle();
+
+    expect(provider.transactions.single.id, 1);
+    expect(provider.transactions.single.title, 'Dinner');
+    expect(provider.transactions.single.amount, 18.75);
     await tester.pumpWidget(const SizedBox.shrink());
     provider.dispose();
   });

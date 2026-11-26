@@ -17,6 +17,9 @@ class _FakeDatabaseHelper implements DatabaseHelper {
   Future<int> addTransaction(TransactionModel transaction) async => 0;
 
   @override
+  Future<int> updateTransaction(TransactionModel transaction) async => 1;
+
+  @override
   Future<int> deleteTransaction(int id) async => 0;
 
   @override

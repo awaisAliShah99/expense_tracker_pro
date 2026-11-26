@@ -47,6 +47,21 @@ class DatabaseHelper {
     return db.insert(_tableName, transaction.toMap());
   }
 
+  Future<int> updateTransaction(TransactionModel transaction) async {
+    final id = transaction.id;
+    if (id == null) {
+      throw ArgumentError.value(
+        transaction,
+        'transaction',
+        'An id is required to update a transaction',
+      );
+    }
+
+    final values = transaction.toMap()..remove('id');
+    final db = await database;
+    return db.update(_tableName, values, where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<List<TransactionModel>> getAllTransactions() async {
     final db = await database;
     final rows = await db.query(_tableName, orderBy: 'date DESC, id DESC');
