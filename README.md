@@ -1,17 +1,55 @@
-# expense_tracker_pro
+# Expense Tracker Pro
 
-A new Flutter project.
+A Flutter application for tracking income and expenses with local reporting and PDF export.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Add, edit, and delete income or expense transactions
+- View expenses grouped by category in a pie chart
+- Browse monthly income, expense, balance, and transaction reports
+- Export monthly reports as PDF files
+- Store transactions offline in SQLite
+- Use light or dark themes based on the system theme
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Flutter
+- Provider
+- sqflite
+- fl_chart
+- pdf
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Architecture
+
+- `lib/models/` contains the transaction data model
+- `lib/db/` contains the SQLite database helper
+- `lib/providers/` contains state management and transaction operations
+- `lib/screens/` contains the home, transaction entry/editing, and monthly report screens
+- `lib/widgets/` contains reusable UI components
+
+Screens never touch the database directly. They communicate with `TransactionProvider`, which owns the `DatabaseHelper`, loads and updates transaction state, and notifies listeners after database operations. This keeps SQLite access out of UI code and ensures screens render state managed through Provider.
+
+## Screenshots
+
+### Home
+
+![Home screen](docs/screenshots/home.png)
+
+### Add or edit transaction
+
+![Add transaction screen](docs/screenshots/add.png)
+
+### Monthly report
+
+![Monthly report screen](docs/screenshots/report.png)
+
+### PDF export
+
+![PDF report](docs/screenshots/pdf.png)
+
+## How to Run
+
+```sh
+flutter pub get
+flutter run
+```
