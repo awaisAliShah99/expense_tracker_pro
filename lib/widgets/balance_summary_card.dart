@@ -51,7 +51,9 @@ class BalanceSummaryCard extends StatelessWidget {
             Text(
               balance.toStringAsFixed(2),
               style: theme.textTheme.headlineMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
+                color: balance < 0
+                    ? transactionColors?.expense ?? theme.colorScheme.error
+                    : theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),

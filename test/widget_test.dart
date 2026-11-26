@@ -52,7 +52,7 @@ void main() {
         TransactionModel(
           id: 2,
           title: 'Current expense',
-          amount: 40,
+          amount: 140,
           type: TransactionType.expense,
           category: 'Food',
           date: currentMonth,
@@ -83,10 +83,14 @@ void main() {
     final monthLabel = MaterialLocalizations.of(
       tester.element(find.byType(HomeScreen)),
     ).formatMonthYear(currentMonth);
-    expect(find.text('All-time balance'), findsOneWidget);
-    expect(find.text('50.00'), findsOneWidget);
+    expect(find.text('$monthLabel balance'), findsOneWidget);
+    expect(find.text('-40.00'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('-40.00')).style?.color,
+      AppTheme.lightTheme.extension<TransactionColors>()!.expense,
+    );
     expect(find.text('100.00'), findsOneWidget);
-    expect(find.text(monthLabel), findsOneWidget);
+    expect(find.text('140.00'), findsNWidgets(2));
     expect(find.text('$monthLabel · Expenses by category'), findsOneWidget);
     expect(find.text('Current income'), findsOneWidget);
     expect(find.text('Current expense'), findsOneWidget);

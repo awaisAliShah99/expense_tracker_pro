@@ -20,7 +20,6 @@ class TransactionProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   double get totalIncome => _totalFor(TransactionType.income);
   double get totalExpense => _totalFor(TransactionType.expense);
-  double get totalBalance => totalIncome - totalExpense;
 
   Map<String, double> getExpenseTotalsByCategory() {
     return _expenseTotalsByCategory(_transactions);

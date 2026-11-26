@@ -42,11 +42,10 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           BalanceSummaryCard(
-            balance: provider.totalBalance,
+            balance: provider.getBalanceForMonth(currentMonth),
             income: provider.getTotalIncomeForMonth(currentMonth),
             expense: provider.getTotalExpenseForMonth(currentMonth),
-            balanceLabel: 'All-time balance',
-            periodLabel: monthLabel,
+            balanceLabel: '$monthLabel balance',
           ),
           ExpensePieChart(
             expensesByCategory: provider.getExpenseTotalsByCategoryForMonth(

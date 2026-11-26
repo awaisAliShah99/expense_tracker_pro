@@ -82,7 +82,6 @@ void main() {
     expect(provider.getTotalIncomeForMonth(november), 100);
     expect(provider.getTotalExpenseForMonth(november), 32.5);
     expect(provider.getBalanceForMonth(november), 67.5);
-    expect(provider.totalBalance, 12.5);
     expect(provider.getExpenseTotalsByCategoryForMonth(november), {
       'Food': 32.5,
     });
