@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => TransactionProvider(),
       child: MaterialApp(
-        title: 'Expense Tracker',
+        title: 'Expense Tracker Pro',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
